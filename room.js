@@ -1,5 +1,6 @@
 const params = new URLSearchParams(location.search);
 const roomId = (params.get('room') || '').toUpperCase();
+const namedEntry = params.get('named') === '1';
 const roomPattern = /^[A-Z0-9]{4}-[A-Z0-9]{4}$/;
 const nicknameKey = 'ssred-nickname';
 const $ = selector => document.querySelector(selector);
@@ -76,4 +77,5 @@ $('#room-code-label').textContent = roomId; $('#sidebar-code').textContent = roo
 if (!roomPattern.test(roomId)) { $('#loading-state').style.display = 'none'; $('#empty-state').style.display = 'none'; $('#not-found').hidden = false; } else { const protocol = location.protocol === 'https:' ? 'wss' : 'ws'; state.socket = new WebSocket(`${protocol}://${location.host}`); state.socket.onopen = () => send({ type: 'join', room: roomId, name: nickname }); state.socket.onmessage = event => handleMessage(JSON.parse(event.data)); state.socket.onclose = () => setConnectionState('Reconectando...', false); }
 $('#share-screen').onclick = startSharing; $('#control-share').onclick = startSharing; $('#control-stop').onclick = stopSharing; $('#copy-link').onclick = () => copy(location.href, 'Link copiado!'); $('#empty-copy-link').onclick = () => copy(location.href, 'Link copiado!'); $('#control-copy').onclick = () => copy(location.href, 'Link copiado!'); $('#copy-code').onclick = () => copy(roomId, 'Código copiado!'); $('#control-fullscreen').onclick = () => document.documentElement.requestFullscreen?.(); $('#control-leave').onclick = () => { state.socket?.close(); location.href = 'index.html'; }; $('#menu-toggle').onclick = () => $('#sidebar').classList.toggle('open'); document.addEventListener('keydown', event => { if (event.key === 'Escape') $('#sidebar').classList.remove('open'); });
 }
-requestNickname();
+const savedNickname = localStorage.getItem(nicknameKey)?.trim();
+if (namedEntry && savedNickname) { nickname = savedNickname.slice(0, 24); initializeRoom(); } else requestNickname();
