@@ -2,8 +2,10 @@
 .not-found[hidden]{display:none}
 .video-stage{overflow:hidden;background:#020304;place-items:center;padding:12px}
 .video-stage video{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center;background:#000}
-.stream-switcher{top:auto;right:12px;bottom:12px;left:12px;max-width:none;justify-content:center;padding:8px;overflow-x:auto;background:#08090be8;border:1px solid var(--line);box-shadow:0 8px 24px #0008}
-.stream-switcher button{min-height:34px;padding:8px 13px;border-color:#343942;background:#171a1f;color:var(--muted);font-size:11px;cursor:pointer}
+.stream-switcher{top:auto;right:12px;bottom:12px;left:12px;max-width:none;justify-content:flex-start;padding:8px;overflow-x:auto;background:#08090be8;border:1px solid var(--line);box-shadow:0 8px 24px #0008}
+.stream-switcher button{display:flex;flex:0 0 148px;flex-direction:column;gap:5px;min-height:92px;padding:5px;border-color:#343942;background:#171a1f;color:var(--muted);font-size:10px;text-align:left;cursor:pointer;overflow:hidden}
+.stream-switcher button video{display:block;width:100%;height:66px;object-fit:cover;object-position:center;background:#050607;pointer-events:none}
+.stream-switcher button span{display:block;overflow:hidden;padding:0 4px;text-overflow:ellipsis;white-space:nowrap}
 .stream-switcher button:hover,.stream-switcher button.active{background:var(--red);border-color:var(--red);color:#fff}
 .video-stage{position:absolute!important;inset:26px 26px 91px!important;display:none!important;overflow:hidden!important;padding:0!important;background:#020304!important;align-items:center!important;justify-content:center!important}
 .video-stage.active{display:flex!important}
