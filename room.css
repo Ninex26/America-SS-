@@ -5,9 +5,9 @@
 .stream-switcher{top:auto;right:12px;bottom:12px;left:12px;max-width:none;justify-content:center;padding:8px;overflow-x:auto;background:#08090be8;border:1px solid var(--line);box-shadow:0 8px 24px #0008}
 .stream-switcher button{min-height:34px;padding:8px 13px;border-color:#343942;background:#171a1f;color:var(--muted);font-size:11px;cursor:pointer}
 .stream-switcher button:hover,.stream-switcher button.active{background:var(--red);border-color:var(--red);color:#fff}
-.video-stage{position:absolute!important;inset:26px 26px 91px!important;display:none!important;overflow:hidden!important;padding:0!important;background:#020304!important;place-items:center!important}
-.video-stage.active{display:grid!important}
-.video-stage video{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center center!important;background:#000!important}
+.video-stage{position:absolute!important;inset:26px 26px 91px!important;display:none!important;overflow:hidden!important;padding:0!important;background:#020304!important;align-items:center!important;justify-content:center!important}
+.video-stage.active{display:flex!important}
+.video-stage video{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center center!important;background:#000!important;transform:none!important}
 .video-stage .video-label{position:absolute;left:16px;top:16px;z-index:2;max-width:calc(100% - 32px);padding:7px 10px;background:#08090bd9;color:#fff;border:1px solid var(--line);font-size:11px;pointer-events:none}
 .video-stage .video-placeholder{display:none}
 .stream-switcher{z-index:3!important}
