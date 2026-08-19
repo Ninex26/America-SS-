@@ -1,14 +1,60 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { WebSocket, WebSocketServer } = require('ws');
 
 const root = __dirname;
 const rooms = new Map();
+const sessions = new Map();
+const oauthStates = new Map();
+const port = Number(process.env.PORT) || 3000;
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml' };
 
-const server = http.createServer((request, response) => {
-  const requested = decodeURIComponent(request.url.split('?')[0]);
+const server = http.createServer(async (request, response) => {
+  const requestUrl = new URL(request.url, `http://${request.headers.host || `localhost:${port}`}`);
+  const requested = decodeURIComponent(requestUrl.pathname);
+  if (requested === '/auth/discord') {
+    if (!process.env.DISCORD_CLIENT_ID || !process.env.DISCORD_CLIENT_SECRET) { response.writeHead(503, { 'Content-Type': 'text/plain; charset=utf-8' }); return response.end('Discord OAuth is not configured'); }
+    const state = crypto.randomBytes(24).toString('hex');
+    oauthStates.set(state, Date.now() + 10 * 60 * 1000);
+    const redirectUri = process.env.DISCORD_REDIRECT_URI || 'https://americass.up.railway.app/auth/discord/callback';
+    const authorizeUrl = new URL('https://discord.com/oauth2/authorize');
+    authorizeUrl.search = new URLSearchParams({ client_id: process.env.DISCORD_CLIENT_ID, response_type: 'code', redirect_uri: redirectUri, scope: 'identify guilds connections', state }).toString();
+    response.writeHead(302, { Location: authorizeUrl.toString() });
+    return response.end();
+  }
+  if (requested === '/auth/discord/callback') {
+    const stateExpiry = oauthStates.get(requestUrl.searchParams.get('state'));
+    oauthStates.delete(requestUrl.searchParams.get('state'));
+    if (!stateExpiry || stateExpiry < Date.now() || requestUrl.searchParams.has('error')) { response.writeHead(302, { Location: '/?discord=cancelled' }); return response.end(); }
+    try {
+      const redirectUri = process.env.DISCORD_REDIRECT_URI || 'https://americass.up.railway.app/auth/discord/callback';
+      const tokenResponse = await fetch('https://discord.com/api/oauth2/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ client_id: process.env.DISCORD_CLIENT_ID, client_secret: process.env.DISCORD_CLIENT_SECRET, grant_type: 'authorization_code', code: requestUrl.searchParams.get('code'), redirect_uri: redirectUri }) });
+      if (!tokenResponse.ok) throw new Error('Discord token exchange failed');
+      const token = await tokenResponse.json();
+      const userResponse = await fetch('https://discord.com/api/users/@me', { headers: { Authorization: `${token.token_type} ${token.access_token}` } });
+      if (!userResponse.ok) throw new Error('Discord profile request failed');
+      const user = await userResponse.json();
+      const sessionId = crypto.randomBytes(32).toString('hex');
+      sessions.set(sessionId, { user, expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000 });
+      const secureCookie = redirectUri.startsWith('https:') ? '; Secure' : '';
+      response.writeHead(302, { Location: '/?discord=connected', 'Set-Cookie': `discord_session=${sessionId}; HttpOnly; SameSite=Lax; Path=/; Max-Age=604800${secureCookie}` });
+      return response.end();
+    } catch (error) { console.error(error); response.writeHead(302, { Location: '/?discord=error' }); return response.end(); }
+  }
+  if (requested === '/api/discord/me') {
+    const sessionId = request.headers.cookie?.match(/(?:^|;\s*)discord_session=([^;]+)/)?.[1];
+    const session = sessionId ? sessions.get(sessionId) : null;
+    response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    return response.end(JSON.stringify({ user: session && session.expiresAt > Date.now() ? session.user : null }));
+  }
+  if (requested === '/auth/discord/logout') {
+    const sessionId = request.headers.cookie?.match(/(?:^|;\s*)discord_session=([^;]+)/)?.[1];
+    if (sessionId) sessions.delete(sessionId);
+    response.writeHead(302, { Location: '/', 'Set-Cookie': 'discord_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0' });
+    return response.end();
+  }
   const filePath = path.normalize(path.join(root, requested === '/' ? 'index.html' : requested));
   if (!filePath.startsWith(root) || !fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
     response.writeHead(404);
@@ -70,5 +116,4 @@ wss.on('connection', socket => {
   });
 });
 
-const port = Number(process.env.PORT) || 3000;
 server.listen(port, () => console.log(`America running at http://localhost:${port}`));

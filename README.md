@@ -1,3 +1,23 @@
+# Login com Discord
+
+Para habilitar o botão **Conectar Discord**, crie uma aplicação no [Discord Developer Portal](https://discord.com/developers/applications), abra **OAuth2 > General** e cadastre o redirect URL:
+
+```text
+https://americass.up.railway.app/auth/discord/callback
+```
+
+Não use um link `discord.gg` como redirect URI; ele é apenas um convite de servidor. O redirect deve voltar para esta aplicação.
+
+Configure estas variáveis no Railway:
+
+```text
+DISCORD_CLIENT_ID=...
+DISCORD_CLIENT_SECRET=...
+DISCORD_REDIRECT_URI=https://americass.up.railway.app/auth/discord/callback
+```
+
+Os escopos usados são `identify guilds connections`. O segredo fica apenas no servidor e a sessão é armazenada em memória.
+
 # America Roleplay
 
 Compartilhamento de tela em tempo real com HTML, CSS, JavaScript, WebRTC e WebSocket.
