@@ -5,8 +5,8 @@
   "description": "Compartilhamento de tela em tempo real com WebRTC e WebSocket.",
   "main": "server/server.js",
   "scripts": {
-    "start": "node server/server.js",
-    "test": "node --check server/server.js"
+    "start": "node server.js",
+    "test": "node --check server.js"
   },
   "dependencies": {
     "ws": "^8.18.0"
