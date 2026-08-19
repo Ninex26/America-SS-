@@ -1,12 +1,14 @@
 {
-  "name": "america-screen",
+  "name": "america-roleplay-screen-share",
   "version": "1.0.0",
-  "description": "Compartilhamento de tela em tempo real com HTML, CSS, JavaScript, WebRTC e WebSocket.",
-  "main": "room.js",
+  "private": true,
+  "description": "Compartilhamento de tela em tempo real com WebRTC e WebSocket.",
+  "main": "server/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server/server.js",
+    "test": "node --check server/server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
 }
