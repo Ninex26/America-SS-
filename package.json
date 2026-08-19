@@ -3,12 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "description": "Compartilhamento de tela em tempo real com WebRTC e WebSocket.",
-  "main": "server/server.js",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "test": "node --check server.js"
   },
   "dependencies": {
+    "ss-red-server": "file:server",
     "ws": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
