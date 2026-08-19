@@ -1,0 +1,12 @@
+{
+  "name": "america-screen",
+  "version": "1.0.0",
+  "description": "Compartilhamento de tela em tempo real com HTML, CSS, JavaScript, WebRTC e WebSocket.",
+  "main": "room.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
