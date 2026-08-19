@@ -3,6 +3,11 @@ const roomId = (params.get('room') || '').toUpperCase();
 const roomPattern = /^[A-Z0-9]{4}-[A-Z0-9]{4}$/;
 const nicknameKey = 'ssred-nickname';
 const $ = selector => document.querySelector(selector);
+const logoUrl = 'https://cdn.discordapp.com/attachments/1534787259558006816/1539476577493061713/image-removebg-preview_4.png?ex=6a8674ca&is=6a85234a&hm=cb086ed167e08139d49e393a114b2b7d75746e3a0bd6f93332288ecfde1d0b8e&';
+document.title = 'America | Sala';
+document.querySelectorAll('.brand strong').forEach(element => { element.textContent = 'America'; });
+document.querySelectorAll('.brand').forEach(element => element.setAttribute('aria-label', 'America início'));
+document.querySelectorAll('.logo-mark img').forEach(element => { element.src = logoUrl; element.alt = 'Logo America'; });
 const state = { socket: null, clientId: null, peers: new Map(), stream: null, streamSources: new Map(), streamNames: new Map() };
 function initials(value) { return value.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase() || '?'; }
 function toast(text) { const element = document.createElement('div'); element.className = 'toast'; element.textContent = text; $('#toast-region').append(element); setTimeout(() => element.remove(), 2800); }
@@ -11,16 +16,23 @@ function send(message) { if (state.socket?.readyState === WebSocket.OPEN) state.
 function setConnectionState(label, connected) { const element = $('#connection-state'); element.innerHTML = `<i></i> ${label}`; element.classList.toggle('connecting', !connected); }
 function updateMembers(members) { $('#user-count').textContent = members.length; $('#member-count').textContent = members.length; $('#members').innerHTML = members.map(member => `<div class="member"><div class="avatar member-avatar">${initials(member.name)}</div><div class="member-info"><strong>${escapeHtml(member.name)} ${member.id === state.clientId ? '<span class="you-badge">VOCÊ</span>' : ''}</strong>${member.id === state.clientId ? '<small>Você</small>' : ''}</div><i class="member-status"></i></div>`).join(''); }
 function getSwitcher() { let element = $('#stream-switcher'); if (!element) { element = document.createElement('div'); element.id = 'stream-switcher'; element.className = 'stream-switcher'; $('.video-stage').append(element); } return element; }
-function selectStream(sourceId) { const source = state.streamSources.get(sourceId); const video = $('#remote-video'); if (!source || !video) return; video.srcObject = source.stream; const label = $('#video-label'); if (label) label.textContent = `Tela de ${source.name}`; $('#video-stage').classList.add('active'); $('#empty-state').style.display = 'none'; getSwitcher().querySelectorAll('button').forEach(button => button.classList.toggle('active', button.dataset.source === sourceId)); }
+function selectStream(sourceId) { const source = state.streamSources.get(sourceId); const video = $('#remote-video'); if (!source || !video) return; video.srcObject = source.stream; video.play().catch(() => {}); const label = $('#video-label'); if (label) label.textContent = `Tela de ${source.name}`; $('#video-stage').classList.add('active'); $('#empty-state').style.display = 'none'; getSwitcher().querySelectorAll('button').forEach(button => button.classList.toggle('active', button.dataset.source === sourceId)); }
 function renderStreams() { const switcher = getSwitcher(); switcher.innerHTML = ''; state.streamSources.forEach((source, id) => { const button = document.createElement('button'); button.dataset.source = id; button.type = 'button'; button.textContent = `Tela de ${source.name}`; button.title = `Ver a tela de ${source.name}`; button.setAttribute('aria-label', `Selecionar tela de ${source.name}`); button.onclick = () => selectStream(id); switcher.append(button); }); if (state.streamSources.size) { const current = [...state.streamSources.keys()].find(id => $('#remote-video')?.srcObject === state.streamSources.get(id).stream); selectStream(current || state.streamSources.keys().next().value); } else { const video = $('#remote-video'); if (video) video.srcObject = null; $('#video-stage').classList.remove('active'); $('#empty-state').style.display = ''; } }
 function addSource(id, stream, name) { if (!stream) return; state.streamSources.set(id, { stream, name: name || state.streamNames.get(id) || state.streamSources.get(id)?.name || `Participante ${id.slice(0, 4)}` }); renderStreams(); }
 function createPeer(id) {
   if (state.peers.has(id)) return state.peers.get(id);
-  const peer = { pc: new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }), polite: String(state.clientId) > String(id), makingOffer: false, ignoreOffer: false, remoteDescriptionSet: false, pendingCandidates: [] };
+  const peer = { pc: new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'stun:stun.cloudflare.com:3478' }] }), polite: String(state.clientId) > String(id), makingOffer: false, ignoreOffer: false, remoteDescriptionSet: false, pendingCandidates: [], remoteStream: new MediaStream() };
   state.peers.set(id, peer);
   peer.pc.onicecandidate = event => { if (event.candidate) send({ type: 'candidate', to: id, candidate: event.candidate }); };
   peer.pc.onnegotiationneeded = async () => { try { peer.makingOffer = true; await peer.pc.setLocalDescription(); send({ type: 'description', to: id, description: peer.pc.localDescription }); } catch (error) { console.error('WebRTC negotiation failed', error); } finally { peer.makingOffer = false; } };
-  peer.pc.ontrack = event => addSource(id, event.streams[0], state.streamSources.get(id)?.name);
+  peer.pc.ontrack = event => {
+    const stream = event.streams[0] || peer.remoteStream;
+    if (!event.streams[0] && !stream.getTracks().includes(event.track)) stream.addTrack(event.track);
+    stream.onaddtrack = () => addSource(id, stream, state.streamSources.get(id)?.name);
+    addSource(id, stream, state.streamSources.get(id)?.name);
+    const video = $('#remote-video');
+    if (video.srcObject === stream) video.play().catch(() => {});
+  };
   peer.pc.onconnectionstatechange = () => { if (['failed', 'closed', 'disconnected'].includes(peer.pc.connectionState)) removePeer(id); };
   if (state.stream) state.stream.getTracks().forEach(track => peer.pc.addTrack(track, state.stream));
   return peer;
