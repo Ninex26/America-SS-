@@ -74,9 +74,6 @@ function requestNickname() {
     <label for="room-nickname">NICKNAME</label>
     <input id="room-nickname" maxlength="24" autocomplete="nickname" placeholder="Seu nickname" required>
     <p class="field-error" id="room-nickname-error"></p>
-    <div id="captcha-container" style="margin: 15px 0; display: flex; justify-content: center;">
-        <div class="cf-turnstile" data-sitekey="0x4AAAAAAEWMGGw3KUXRQZ0J" data-theme="dark"></div>
-    </div>
     <button class="primary-button" type="submit">Entrar na sala <span>→</span></button>
 </form>`;
   document.body.append(gate);
@@ -88,9 +85,6 @@ function requestNickname() {
     event.preventDefault();
     const value = input.value.trim();
     if (!value) { gate.querySelector('#room-nickname-error').textContent = 'Digite um nome para continuar.'; return; }
-    
-    const token = gate.querySelector('[name="cf-turnstile-response"]')?.value;
-    if (!token) { toast('Por favor, complete o captcha.'); return; }
 
     nickname = value.slice(0, 24);
 
