@@ -39,6 +39,20 @@ wss.on('connection', socket => {
     const room = rooms.get(socket.roomId); if (!room) return;
     if (message.type === 'sharing-started') socket.isSharing = true;
     if (message.type === 'stop-sharing') socket.isSharing = false;
+    if (message.type === 'chat-message') {
+      const text = String(message.text || '').trim().slice(0, 500);
+      if (!text) return;
+      room.clients.forEach(client => send(client, { type: 'chat-message', from: socket.clientId, name: socket.displayName, text, timestamp: Date.now() }));
+      return;
+    }
+    if (message.type === 'kick') {
+      if (!socket.isOwner) return;
+      const target = [...room.clients].find(client => client.clientId === message.targetId);
+      if (!target || target === socket) return;
+      send(target, { type: 'kicked', by: socket.clientId, name: socket.displayName });
+      target.close();
+      return;
+    }
     if (message.to) { const target = [...room.clients].find(client => client.clientId === message.to); if (target) send(target, { ...message, from: socket.clientId }); }
     else room.clients.forEach(client => { if (client !== socket) send(client, { ...message, from: socket.clientId }); });
     if (message.type === 'sharing-started' || message.type === 'stop-sharing') broadcastRoster(room);

@@ -9,13 +9,17 @@ document.title = 'America | Sala';
 document.querySelectorAll('.brand strong').forEach(element => { element.textContent = 'America'; });
 document.querySelectorAll('.brand').forEach(element => element.setAttribute('aria-label', 'America início'));
 document.querySelectorAll('.logo-mark img').forEach(element => { element.src = logoUrl; element.alt = 'Logo America'; });
-const state = { socket: null, clientId: null, peers: new Map(), stream: null, streamSources: new Map(), streamNames: new Map(), mutedStreams: new Set() };
+const state = { socket: null, clientId: null, isOwner: false, peers: new Map(), stream: null, streamSources: new Map(), streamNames: new Map(), mutedStreams: new Set() };
 function initials(value) { return value.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase() || '?'; }
 function toast(text) { const element = document.createElement('div'); element.className = 'toast'; element.textContent = text; $('#toast-region').append(element); setTimeout(() => element.remove(), 2800); }
 function escapeHtml(value) { return value.replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character])); }
 function send(message) { if (state.socket?.readyState === WebSocket.OPEN) state.socket.send(JSON.stringify(message)); }
 function setConnectionState(label, connected) { const element = $('#connection-state'); element.innerHTML = `<i></i> ${label}`; element.classList.toggle('connecting', !connected); }
-function updateMembers(members) { const transmitting = members.filter(member => member.sharing); const connected = members.filter(member => !member.sharing); $('#user-count').textContent = members.length; $('#member-count').textContent = members.length; const renderMember = member => `<div class="member ${member.sharing ? 'is-sharing' : ''}"><div class="avatar member-avatar">${initials(member.name)}</div><div class="member-info"><strong>${escapeHtml(member.name)} ${member.owner ? '<span class="owner-crown" title="Dono da sala" aria-label="Dono da sala"><svg viewBox="0 0 24 24"><path d="m3 7 4 4 5-7 5 7 4-4-2 12H5L3 7Z"/><path d="M5 19h14"/></svg></span>' : ''} ${member.id === state.clientId ? '<span class="you-badge">VOCÊ</span>' : ''}</strong><small>${member.sharing ? 'Compartilhando tela' : member.id === state.clientId ? 'Você' : 'Conectado'}</small></div><i class="member-status"></i></div>`; $('#members').innerHTML = `<section class="member-group transmitting-group"><div class="members-title">TRANSMITINDO — <span>${transmitting.length}</span></div>${transmitting.map(renderMember).join('') || '<p class="members-empty">Ninguém transmitindo</p>'}</section><section class="member-group connected-group"><div class="members-title">NA SALA — <span>${connected.length}</span></div>${connected.map(renderMember).join('')}</section>`; }
+function toggleChat(open) { const panel = $('#chat-panel'); const button = $('#chat-toggle'); panel.classList.toggle('open', open); panel.setAttribute('aria-hidden', String(!open)); button.setAttribute('aria-expanded', String(open)); if (open) $('#chat-input').focus(); }
+function appendChatMessage(message) { const empty = $('#chat-empty'); if (empty) empty.remove(); const item = document.createElement('article'); item.className = `chat-message${message.from === state.clientId ? ' own' : ''}`; const header = document.createElement('div'); header.className = 'chat-message-header'; const name = document.createElement('strong'); name.textContent = message.name; const time = document.createElement('time'); time.textContent = new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); header.append(name, time); const body = document.createElement('p'); body.textContent = message.text; item.append(header, body); $('#chat-messages').append(item); $('#chat-messages').scrollTop = $('#chat-messages').scrollHeight; }
+function sendChatMessage() { const input = $('#chat-input'); const text = input.value.trim(); if (!text) return; send({ type: 'chat-message', text }); input.value = ''; }
+function kickMember(memberId, memberName) { if (!state.isOwner || memberId === state.clientId) return; if (!confirm(`Expulsar ${memberName} da sala?`)) return; send({ type: 'kick', targetId: memberId }); toast(`${memberName} foi expulso da sala.`); }
+function updateMembers(members) { const transmitting = members.filter(member => member.sharing); const connected = members.filter(member => !member.sharing); $('#user-count').textContent = members.length; $('#member-count').textContent = members.length; const renderMember = member => `<div class="member ${member.sharing ? 'is-sharing' : ''}"><div class="avatar member-avatar">${initials(member.name)}</div><div class="member-info"><strong>${escapeHtml(member.name)} ${member.owner ? '<span class="owner-crown" title="Dono da sala" aria-label="Dono da sala"><svg viewBox="0 0 24 24"><path d="m3 7 4 4 5-7 5 7 4-4-2 12H5L3 7Z"/><path d="M5 19h14"/></svg></span>' : ''} ${member.id === state.clientId ? '<span class="you-badge">VOCÊ</span>' : ''}</strong><small>${member.sharing ? 'Compartilhando tela' : member.id === state.clientId ? 'Você' : 'Conectado'}</small></div>${state.isOwner && member.id !== state.clientId ? `<button class="kick-button" type="button" title="Expulsar ${escapeHtml(member.name)}" aria-label="Expulsar ${escapeHtml(member.name)}" onclick="kickMember('${member.id}', '${escapeHtml(member.name).replace(/'/g, "\\'")}')"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M21 4v16"/></svg></button>` : ''}<i class="member-status"></i></div>`; $('#members').innerHTML = `<section class="member-group transmitting-group"><div class="members-title">TRANSMITINDO — <span>${transmitting.length}</span></div>${transmitting.map(renderMember).join('') || '<p class="members-empty">Ninguém transmitindo</p>'}</section><section class="member-group connected-group"><div class="members-title">NA SALA — <span>${connected.length}</span></div>${connected.map(renderMember).join('')}</section>`; }
 function getSwitcher() { let element = $('#stream-switcher'); if (!element) { const dock = document.createElement('div'); dock.id = 'stream-dock'; dock.className = 'stream-dock'; const toggle = document.createElement('button'); toggle.id = 'stream-dock-toggle'; toggle.className = 'stream-dock-toggle'; toggle.type = 'button'; toggle.title = 'Ocultar telas'; toggle.setAttribute('aria-label', 'Ocultar telas'); toggle.setAttribute('aria-expanded', 'true'); toggle.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>'; toggle.onclick = () => { const collapsed = dock.classList.toggle('collapsed'); toggle.setAttribute('aria-expanded', String(!collapsed)); toggle.title = collapsed ? 'Mostrar telas' : 'Ocultar telas'; toggle.setAttribute('aria-label', toggle.title); }; element = document.createElement('div'); element.id = 'stream-switcher'; element.className = 'stream-switcher'; dock.append(toggle, element); $('.video-stage').append(dock); } return element; }
 function updateAudioButtons() { getSwitcher().querySelectorAll('.stream-audio-toggle').forEach(button => { const muted = state.mutedStreams.has(button.dataset.source); button.classList.toggle('muted', muted); button.title = muted ? 'Ativar som' : 'Silenciar som'; button.setAttribute('aria-label', button.title); button.innerHTML = muted ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18M9 9v6l4 2V7M17 9.5a5 5 0 0 1 0 5"/></svg>' : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10v4h4l5 4V6l-5 4H5ZM18 9a5 5 0 0 1 0 6"/></svg>'; }); }
 function toggleStreamAudio(sourceId, event) { event.stopPropagation(); if (state.mutedStreams.has(sourceId)) state.mutedStreams.delete(sourceId); else state.mutedStreams.add(sourceId); if ($('#remote-video')?.srcObject === state.streamSources.get(sourceId)?.stream) $('#remote-video').muted = state.mutedStreams.has(sourceId); updateAudioButtons(); }
@@ -45,10 +49,12 @@ function createPeer(id) {
 function removePeer(id) { state.peers.get(id)?.pc.close(); state.peers.delete(id); state.streamSources.delete(id); renderStreams(); }
 async function handleDescription(message) { const peer = createPeer(message.from); const description = message.description; const offerCollision = description.type === 'offer' && (peer.makingOffer || peer.pc.signalingState !== 'stable'); peer.ignoreOffer = !peer.polite && offerCollision; if (peer.ignoreOffer) return; try { await peer.pc.setRemoteDescription(description); peer.remoteDescriptionSet = true; for (const candidate of peer.pendingCandidates.splice(0)) await peer.pc.addIceCandidate(candidate); if (description.type === 'offer') { await peer.pc.setLocalDescription(); send({ type: 'description', to: message.from, description: peer.pc.localDescription }); } } catch (error) { console.error('WebRTC description failed', error); } }
 async function handleMessage(message) {
-  if (message.type === 'welcome') { state.clientId = message.id; updateMembers(message.members); setConnectionState('Conectado', true); $('#loading-state').style.display = 'none'; toast('Conectado à sala.'); message.members.filter(member => member.id !== state.clientId).forEach(member => createPeer(member.id)); }
+  if (message.type === 'welcome') { state.clientId = message.id; state.isOwner = message.members.find(member => member.id === state.clientId)?.owner || false; updateMembers(message.members); setConnectionState('Conectado', true); $('#loading-state').style.display = 'none'; toast('Conectado à sala.'); message.members.filter(member => member.id !== state.clientId).forEach(member => createPeer(member.id)); }
   else if (message.type === 'user-joined') { updateMembers(message.members); createPeer(message.id); }
   else if (message.type === 'user-left') { removePeer(message.id); updateMembers(message.members); }
-  else if (message.type === 'roster') updateMembers(message.members);
+  else if (message.type === 'roster') { state.isOwner = message.members.find(member => member.id === state.clientId)?.owner || false; updateMembers(message.members); }
+  else if (message.type === 'kicked') { state.socket?.close(); toast(`Você foi expulso da sala por ${message.name}.`); setTimeout(() => location.href = 'index.html', 1500); }
+  else if (message.type === 'chat-message') appendChatMessage(message);
   else if (message.type === 'description') await handleDescription(message);
   else if (message.type === 'candidate') { const peer = createPeer(message.from); if (peer.remoteDescriptionSet) await peer.pc.addIceCandidate(message.candidate); else peer.pendingCandidates.push(message.candidate); }
   else if (message.type === 'sharing-started') { state.streamNames.set(message.from, message.name); const source = state.streamSources.get(message.from); if (source) source.name = message.name; renderStreams(); }
@@ -61,17 +67,33 @@ let nickname = '';
 function requestNickname() {
   const gate = document.createElement('div');
   gate.className = 'nickname-gate';
-  gate.innerHTML = '<form class="nickname-card"><span class="card-kicker">ENTRAR NA SALA</span><h1>Como devemos chamar você?</h1><p>Escolha um nome para aparecer na lista de participantes.</p><label for="room-nickname">NICKNAME</label><input id="room-nickname" maxlength="24" autocomplete="nickname" placeholder="Seu nickname" required><p class="field-error" id="room-nickname-error"></p><button class="primary-button" type="submit">Entrar na sala <span>→</span></button></form>';
+    gate.innerHTML = `<form class="nickname-card">
+    <span class="card-kicker">ENTRAR NA SALA</span>
+    <h1>Como devemos chamar você?</h1>
+    <p>Escolha um nome para aparecer na lista de participantes.</p>
+    <label for="room-nickname">NICKNAME</label>
+    <input id="room-nickname" maxlength="24" autocomplete="nickname" placeholder="Seu nickname" required>
+    <p class="field-error" id="room-nickname-error"></p>
+    <div id="captcha-container" style="margin: 15px 0; display: flex; justify-content: center;">
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAAEWMGGw3KUXRQZ0J" data-theme="dark"></div>
+    </div>
+    <button class="primary-button" type="submit">Entrar na sala <span>→</span></button>
+</form>`;
   document.body.append(gate);
   const form = gate.querySelector('form');
   const input = gate.querySelector('#room-nickname');
   input.value = localStorage.getItem(nicknameKey)?.trim().slice(0, 24) || '';
   input.focus();
-  form.addEventListener('submit', event => {
+      form.addEventListener('submit', event => {
     event.preventDefault();
     const value = input.value.trim();
     if (!value) { gate.querySelector('#room-nickname-error').textContent = 'Digite um nome para continuar.'; return; }
+    
+    const token = gate.querySelector('[name="cf-turnstile-response"]')?.value;
+    if (!token) { toast('Por favor, complete o captcha.'); return; }
+
     nickname = value.slice(0, 24);
+
     localStorage.setItem(nicknameKey, nickname);
     gate.remove();
     initializeRoom();
@@ -81,6 +103,7 @@ function initializeRoom() {
 $('#room-code-label').textContent = roomId; $('#sidebar-code').textContent = roomId; $('#footer-name').textContent = nickname; $('#members').innerHTML = `<div class="member"><div class="avatar member-avatar">${initials(nickname)}</div><div class="member-info"><strong>${escapeHtml(nickname)} <span class="you-badge">VOCÊ</span></strong><small>Você</small></div><i class="member-status"></i></div>`;
 if (!roomPattern.test(roomId)) { $('#loading-state').style.display = 'none'; $('#empty-state').style.display = 'none'; $('#not-found').hidden = false; } else { const protocol = location.protocol === 'https:' ? 'wss' : 'ws'; state.socket = new WebSocket(`${protocol}://${location.host}`); state.socket.onopen = () => send({ type: 'join', room: roomId, name: nickname }); state.socket.onmessage = event => handleMessage(JSON.parse(event.data)); state.socket.onclose = () => setConnectionState('Reconectando...', false); }
 $('#share-screen').onclick = startSharing; $('#control-share').onclick = startSharing; $('#control-stop').onclick = stopSharing; $('#copy-link').onclick = () => copy(location.href, 'Link copiado!'); $('#empty-copy-link').onclick = () => copy(location.href, 'Link copiado!'); $('#control-copy').onclick = () => copy(location.href, 'Link copiado!'); $('#copy-code').onclick = () => copy(roomId, 'Código copiado!'); $('#control-fullscreen').onclick = () => document.documentElement.requestFullscreen?.(); $('#control-leave').onclick = () => { state.socket?.close(); location.href = 'index.html'; }; $('#menu-toggle').onclick = () => $('#sidebar').classList.toggle('open'); document.addEventListener('keydown', event => { if (event.key === 'Escape') $('#sidebar').classList.remove('open'); });
+$('#chat-toggle').onclick = () => toggleChat(!$('#chat-panel').classList.contains('open')); $('#chat-close').onclick = () => toggleChat(false); $('#chat-form').onsubmit = event => { event.preventDefault(); sendChatMessage(); };
 }
 const savedNickname = localStorage.getItem(nicknameKey)?.trim();
 if (namedEntry && savedNickname) { nickname = savedNickname.slice(0, 24); initializeRoom(); } else requestNickname();
