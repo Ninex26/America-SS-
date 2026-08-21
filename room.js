@@ -9,12 +9,18 @@
   const params = new URLSearchParams(window.location.search);
   const roomId = (params.get('room') || '').toUpperCase();
   const namedEntry = params.get('named') === '1';
+  const isCreating = params.get('create') === '1' || namedEntry;
 
   console.log('🔍 Room ID capturado:', roomId);
   console.log('🔗 URL completa:', window.location.href);
+  console.log('📝 É criação de sala?', isCreating);
 
-  // 2. VERIFICAR SE TEM roomId (entrando por link)
+  // 2. VERIFICAR SE TEM roomId
   const isJoiningByLink = !!(roomId && roomId.trim() !== '');
+
+  // Se for criação, não pede nickname - vai direto para a sala
+  // Se for entrada por link, pede nickname
+  const shouldAskNickname = isJoiningByLink && !isCreating;
   
   // 3. CONFIGURAÇÕES
   const nicknameKey = 'ssred-nickname';
@@ -128,12 +134,16 @@
     input.value = ''; 
   }
 
-  function kickMember(memberId, memberName) { 
-    if (!state.isOwner || memberId === state.clientId) return; 
+  // 🔧 CORREÇÃO: Função kickMember global para o onclick funcionar
+  window.kickMember = function(memberId, memberName) { 
+    if (!state.isOwner || memberId === state.clientId) {
+      toast('Apenas o dono da sala pode expulsar participantes.');
+      return; 
+    }
     if (!confirm(`Expulsar ${memberName} da sala?`)) return; 
     send({ type: 'kick', targetId: memberId }); 
     toast(`${memberName} foi expulso da sala.`); 
-  }
+  };
 
   function updateMembers(members) { 
     const transmitting = members.filter(member => member.sharing); 
@@ -146,13 +156,16 @@
         ? '<span class="member-share-icon" title="Transmitindo tela" aria-label="Transmitindo tela"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>'
         : '<span class="member-share-icon" title="Não está transmitindo tela" aria-label="Não está transmitindo tela"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="m5 7 14 14" opacity=".7"/></svg></span>';
       
+      // 🔧 CORREÇÃO: Escapar o nome para evitar problemas com aspas
+      const escapedName = escapeHtml(member.name).replace(/'/g, "\\'");
+      
       return `<div class="member ${member.sharing ? 'is-sharing' : ''}">
         <div class="avatar member-avatar">${initials(member.name)}</div>
         <div class="member-info">
           <strong>${escapeHtml(member.name)} ${member.owner ? '<span class="owner-crown" title="Dono da sala" aria-label="Dono da sala"><svg viewBox="0 0 24 24"><path d="m3 7 4 4 5-7 5 7 4-4-2 12H5L3 7Z"/><path d="M5 19h14"/></svg></span>' : ''} ${member.id === state.clientId ? '<span class="you-badge">VOCÊ</span>' : ''}</strong>
           <small>${member.sharing ? 'Compartilhando tela' : member.id === state.clientId ? 'Você está na sala' : 'Conectado'}</small>
         </div>
-        ${state.isOwner && member.id !== state.clientId ? `<button class="kick-button" type="button" title="Expulsar ${escapeHtml(member.name)}" aria-label="Expulsar ${escapeHtml(member.name)}" onclick="kickMember('${member.id}', '${escapeHtml(member.name).replace(/'/g, "\\'")}')"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M21 4v16"/></svg></button>` : ''}
+        ${state.isOwner && member.id !== state.clientId ? `<button class="kick-button" type="button" title="Expulsar ${escapeHtml(member.name)}" aria-label="Expulsar ${escapeHtml(member.name)}" onclick="window.kickMember('${member.id}', '${escapedName}')"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M21 4v16"/></svg></button>` : ''}
         ${shareIcon}
         <i class="member-status ${member.sharing ? '' : 'online'}"></i>
       </div>`;
@@ -548,7 +561,7 @@
   }
 
   // ============================================
-  // FUNÇÃO PARA INICIALIZAR A SALA (JÁ CONECTADO)
+  // FUNÇÃO PARA INICIALIZAR A SALA
   // ============================================
   function initializeRoom() {
     console.log('🚀 Inicializando sala com ID:', roomId);
@@ -700,11 +713,20 @@
   // INICIA A APLICAÇÃO
   // ============================================
   
+  // 🔧 CORREÇÃO: Se for criação de sala, usa nickname do localStorage ou "Anfitrião"
+  if (isCreating) {
+    console.log('🎉 Criando sala - não perguntar nickname');
+    // Pega o nickname do localStorage ou usa padrão
+    nickname = localStorage.getItem(nicknameKey)?.trim().slice(0, 24) || 'Anfitrião';
+    // Vai direto para a sala
+    initializeRoom();
+  } 
   // Se a pessoa está entrando por link (tem roomId)
-  if (isJoiningByLink) {
+  else if (isJoiningByLink) {
     console.log('📥 Entrando por link - pedir nickname');
     requestNicknameForJoin();
-  } else {
+  } 
+  else {
     // Se não tem roomId, mostrar erro
     document.body.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;text-align:center;flex-direction:column;padding:20px;">
