@@ -1,5 +1,5 @@
 if(typeof document!=='undefined'){
-  document.title='America | Compartilhamento de tela';
+  document.title='America | Desativado';
   document.querySelectorAll('.brand strong').forEach(element=>{
     element.textContent='America'
   });
