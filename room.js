@@ -518,7 +518,16 @@
 
   let nickname = '';
 
+  // ============================================
+  // FUNÇÃO REQUEST NICKNAME COM PROTEÇÃO
+  // ============================================
   function requestNickname() {
+    // 🔧 PREVINE DUPLICAÇÃO: Se já existe um modal, não cria outro
+    if (document.querySelector('.nickname-gate')) {
+      console.log('⚠️ Modal de nickname já existe, ignorando segunda chamada.');
+      return;
+    }
+
     const gate = document.createElement('div');
     gate.className = 'nickname-gate';
     gate.innerHTML = `<form class="nickname-card">
@@ -699,7 +708,7 @@
   }
 
   // ============================================
-  // INICIA A APLICAÇÃO
+  // INICIA A APLICAÇÃO - APENAS UMA VEZ!
   // ============================================
   requestNickname();
 
