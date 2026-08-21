@@ -1,7 +1,3 @@
-const params = new URLSearchParams(location.search);
-const roomId = (params.get('room') || '').toUpperCase();
-const namedEntry = params.get('named') === '1';
-
 // ADICIONE ESTE LOG PARA DEBUG
 console.log('Room ID capturado:', roomId);
 console.log('URL completa:', location.href);
@@ -142,37 +138,64 @@ if (!roomId || roomId.trim() === '') {
   return;
 }
 
-// CONECTA DIRETAMENTE - sem validação de formato
-console.log('Conectando ao WebSocket com roomId:', roomId);
-const protocol = location.protocol === 'https:' ? 'wss' : 'ws'; 
-const wsUrl = `${protocol}://${location.host}`;
+// 🔧 CORREÇÃO: Usa a porta correta para WebSocket
+const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+// Se estiver rodando localmente, usa a porta padrão 3000 (ajuste conforme necessário)
+let host = location.host;
+// Se estiver no localhost, tenta a porta do servidor
+if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+  // Se a página está na porta 5500 (Live Server), o WebSocket pode estar em outra porta
+  // Tenta usar a porta 3000 ou a porta atual
+  const port = location.port || '80';
+  // Se for Live Server (5500), tenta conectar na porta 3000
+  if (port === '5500') {
+    host = 'localhost:3000';
+  }
+}
+const wsUrl = `${protocol}://${host}`;
 console.log('WebSocket URL:', wsUrl);
 
 try {
   state.socket = new WebSocket(wsUrl); 
   state.socket.onopen = () => {
     console.log('WebSocket conectado! Enviando join com room:', roomId);
-    // Esconde a mensagem de erro quando conectar
     if (notFound) notFound.style.display = 'none';
     if (loadingState) loadingState.style.display = 'none';
     send({ type: 'join', room: roomId, name: nickname });
   }; 
   state.socket.onmessage = event => {
     console.log('Mensagem recebida:', event.data);
-    const message = JSON.parse(event.data);
-    // Se receber welcome, a sala existe
-    if (message.type === 'welcome') {
-      if (notFound) notFound.style.display = 'none';
-      if (loadingState) loadingState.style.display = 'none';
+    try {
+      const message = JSON.parse(event.data);
+      if (message.type === 'welcome') {
+        if (notFound) notFound.style.display = 'none';
+        if (loadingState) loadingState.style.display = 'none';
+      }
+      handleMessage(message);
+    } catch (e) {
+      console.error('Erro ao processar mensagem:', e);
     }
-    handleMessage(message);
   }; 
-  state.socket.onclose = () => {
-    console.log('WebSocket fechado');
+  state.socket.onclose = (event) => {
+    console.log('WebSocket fechado. Código:', event.code, 'Razão:', event.reason);
     setConnectionState('Reconectando...', false);
+    // Se foi fechado sem motivo normal e não foi por kick
+    if (event.code !== 1000 && event.code !== 1001) {
+      setTimeout(() => {
+        if (state.socket?.readyState !== WebSocket.OPEN) {
+          toast('Conexão perdida. Tentando reconectar...');
+          // Tenta reconectar apenas se não foi intencional
+          if (!state._reconnecting) {
+            state._reconnecting = true;
+            initializeRoom();
+          }
+        }
+      }, 3000);
+    }
   };
   state.socket.onerror = (error) => {
     console.error('WebSocket erro:', error);
+    // Não mostra erro imediatamente, deixa o timeout resolver
   };
 } catch (error) {
   console.error('Erro ao criar WebSocket:', error);
@@ -183,10 +206,11 @@ try {
 
 // Timeout para segurança - se não conectar em 5 segundos, mostra erro
 setTimeout(() => {
-  if (state.socket?.readyState !== WebSocket.OPEN) {
+  if (state.socket?.readyState !== WebSocket.OPEN && !state._reconnecting) {
     console.log('Timeout: não foi possível conectar ao servidor');
     if (notFound) notFound.style.display = 'grid';
     if (loadingState) loadingState.style.display = 'none';
+    toast('Não foi possível conectar ao servidor. Verifique se o servidor está rodando.');
   }
 }, 5000);
 
