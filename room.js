@@ -1,8 +1,7 @@
 // ============================================
-// CORREÇÃO: Garantir que roomId seja definido
+// CORREÇÃO: Separar criação de entrada
 // ============================================
 
-// Função principal que contém TODO o código
 (function() {
   'use strict';
 
@@ -11,23 +10,13 @@
   const roomId = (params.get('room') || '').toUpperCase();
   const namedEntry = params.get('named') === '1';
 
-  // 2. VERIFICAR SE O roomId EXISTE
   console.log('🔍 Room ID capturado:', roomId);
   console.log('🔗 URL completa:', window.location.href);
 
-  if (!roomId) {
-    console.error('❌ Nenhum room ID encontrado na URL!');
-    document.body.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;text-align:center;flex-direction:column;padding:20px;">
-        <h1 style="color:#e74c3c;">⚠️ Sala não especificada</h1>
-        <p style="color:#666;max-width:400px;">Adicione <code style="background:#f0f0f0;padding:2px 8px;border-radius:4px;">?room=SEU_CODIGO</code> à URL.</p>
-        <p style="color:#999;font-size:14px;">Exemplo: <code>room.html?room=ABC123</code></p>
-      </div>
-    `;
-    return; // PARA A EXECUÇÃO AQUI
-  }
-
-  // 3. AGORA SIM, O RESTANTE DO CÓDIGO
+  // 2. VERIFICAR SE TEM roomId (entrando por link)
+  const isJoiningByLink = !!(roomId && roomId.trim() !== '');
+  
+  // 3. CONFIGURAÇÕES
   const nicknameKey = 'ssred-nickname';
   const $ = selector => document.querySelector(selector);
   const logoUrl = 'https://cdn.discordapp.com/attachments/1524548205466095677/1540207479126884382/image-removebg-preview_4.png?ex=6a891d7e&is=6a87cbfe&hm=9162c905b05707b28663a7ee3a07287d6c4807c83e8463b1e77dfbaee2398748&';
@@ -519,12 +508,12 @@
   let nickname = '';
 
   // ============================================
-  // FUNÇÃO REQUEST NICKNAME COM PROTEÇÃO
+  // FUNÇÃO PARA PEDIR NICKNAME (APENAS PARA ENTRAR)
   // ============================================
-  function requestNickname() {
-    // 🔧 PREVINE DUPLICAÇÃO: Se já existe um modal, não cria outro
+  function requestNicknameForJoin() {
+    // 🔧 PREVINE DUPLICAÇÃO
     if (document.querySelector('.nickname-gate')) {
-      console.log('⚠️ Modal de nickname já existe, ignorando segunda chamada.');
+      console.log('⚠️ Modal de nickname já existe, ignorando.');
       return;
     }
 
@@ -533,7 +522,7 @@
     gate.innerHTML = `<form class="nickname-card">
       <span class="card-kicker">ENTRAR NA SALA</span>
       <h1>Como devemos chamar você?</h1>
-      <p>Escolha um nome para aparecer na lista de participantes.</p>
+      <p>Digite seu nome para entrar na sala <strong>${roomId}</strong></p>
       <label for="room-nickname">NICKNAME</label>
       <input id="room-nickname" maxlength="24" autocomplete="nickname" placeholder="Seu nickname" required>
       <p class="field-error" id="room-nickname-error"></p>
@@ -558,6 +547,9 @@
     });
   }
 
+  // ============================================
+  // FUNÇÃO PARA INICIALIZAR A SALA (JÁ CONECTADO)
+  // ============================================
   function initializeRoom() {
     console.log('🚀 Inicializando sala com ID:', roomId);
     console.log('👤 Nickname:', nickname);
@@ -603,10 +595,8 @@
     const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
     let host = location.host;
     
-    // 🔧 CORREÇÃO: Ajuste de porta para desenvolvimento
     if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
       const port = location.port || '80';
-      // Se estiver no Live Server (5500) ou outra porta, tenta 3000
       if (port === '5500' || port === '8080' || port === '8000') {
         host = 'localhost:3000';
       }
@@ -669,7 +659,6 @@
       toast('Erro ao conectar ao servidor');
     }
 
-    // Timeout para segurança
     setTimeout(() => {
       if (state.socket?.readyState !== WebSocket.OPEN && !state._reconnecting) {
         console.log('⏰ Timeout: não foi possível conectar ao servidor');
@@ -708,8 +697,22 @@
   }
 
   // ============================================
-  // INICIA A APLICAÇÃO - APENAS UMA VEZ!
+  // INICIA A APLICAÇÃO
   // ============================================
-  requestNickname();
+  
+  // Se a pessoa está entrando por link (tem roomId)
+  if (isJoiningByLink) {
+    console.log('📥 Entrando por link - pedir nickname');
+    requestNicknameForJoin();
+  } else {
+    // Se não tem roomId, mostrar erro
+    document.body.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;text-align:center;flex-direction:column;padding:20px;">
+        <h1 style="color:#e74c3c;">⚠️ Sala não especificada</h1>
+        <p style="color:#666;max-width:400px;">Adicione <code style="background:#f0f0f0;padding:2px 8px;border-radius:4px;">?room=SEU_CODIGO</code> à URL.</p>
+        <p style="color:#999;font-size:14px;">Exemplo: <code>room.html?room=ABC123</code></p>
+      </div>
+    `;
+  }
 
 })(); // Fim da função autoexecutável
