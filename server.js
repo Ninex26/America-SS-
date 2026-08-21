@@ -55,6 +55,7 @@ wss.on('connection', socket => {
       room.clients.add(socket);
       send(socket, { type: 'welcome', id: socket.clientId, members: roster(room) });
       room.clients.forEach(client => { if (client !== socket) send(client, { type: 'user-joined', id: socket.clientId, name: socket.displayName, members: roster(room) }); });
+      room.clients.forEach(client => { if (client !== socket && client.isSharing) send(socket, { type: 'sharing-started', from: client.clientId, name: client.displayName }); });
       if (isNewRoom) sendDiscordWebhook(WEBHOOK_ROOM_CREATED, '📢 Sala criada', 0x00ff00, [
         { name: '🏷️ Código', value: `\`${message.room}\``, inline: true },
         { name: '👑 Dono', value: socket.displayName, inline: true }
@@ -75,6 +76,11 @@ wss.on('connection', socket => {
       ]);
     }
     if (message.type === 'stop-sharing') socket.isSharing = false;
+    if (message.type === 'sharing-started' || message.type === 'stop-sharing') {
+      room.clients.forEach(client => { if (client !== socket) send(client, { type: message.type, from: socket.clientId, name: socket.displayName }); });
+      broadcastRoster(room);
+      return;
+    }
     if (message.type === 'chat-message') {
       const text = String(message.text || '').trim().slice(0, 500);
       if (!text) return;
@@ -101,7 +107,6 @@ wss.on('connection', socket => {
     }
     if (message.to) { const target = [...room.clients].find(client => client.clientId === message.to); if (target) send(target, { ...message, from: socket.clientId }); }
     else room.clients.forEach(client => { if (client !== socket) send(client, { ...message, from: socket.clientId }); });
-    if (message.type === 'sharing-started' || message.type === 'stop-sharing') broadcastRoster(room);
   });
   socket.on('close', () => {
     if (!socket.roomId) return;
@@ -118,4 +123,4 @@ wss.on('connection', socket => {
 });
 
 const port = Number(process.env.PORT) || 3000;
-server.listen(port, () => console.log(`America running at http://localhost:${port}`));
+server.listen(port, () => console.log(`DuArrasta running at http://localhost:${port}`));

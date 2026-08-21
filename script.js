@@ -1,9 +1,8 @@
-if(typeof document!=='undefined'){
-  document.title='America | Desativado';
-  document.querySelectorAll('.brand strong').forEach(element=>{
-    element.textContent='America'
-  });
-  document.querySelectorAll('.brand').forEach(element=>{
-    element.setAttribute('aria-label','America início')
-  });
-}
+if(typeof document!=='undefined'){document.title='DuArrasta | Compartilhamento de tela';document.querySelectorAll('.brand strong').forEach(element=>{element.textContent='DuArrasta'});document.querySelectorAll('.brand').forEach(element=>element.setAttribute('aria-label','DuArrasta início'))}
+const nicknameInput=document.querySelector('#nickname');const roomInput=document.querySelector('#room-code');const enterButton=document.querySelector('#enter-room');const avatarPreview=document.querySelector('#avatar-preview');const nickCount=document.querySelector('#nick-count');const toastRegion=document.querySelector('#toast-region');const roomPattern=/^[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+
+function initials(value){return value.trim().split(/\s+/).slice(0,2).map(part=>part[0]).join('').toUpperCase()||'?'}function showToast(message){const toast=document.createElement('div');toast.className='toast';toast.textContent=message;toastRegion.append(toast);setTimeout(()=>toast.remove(),2800)}function validNickname(){const value=nicknameInput.value.trim();document.querySelector('#nick-error').textContent=value?'':'Digite um nickname para continuar.';return Boolean(value)}function formatCode(value){return value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8).replace(/(.{4})/,'$1-')}function goToRoom(code){localStorage.setItem('ssred-nickname',nicknameInput.value.trim());location.href=`room.html?room=${code}&named=1`}
+nicknameInput.addEventListener('input',()=>{avatarPreview.textContent=initials(nicknameInput.value);nickCount.textContent=`${nicknameInput.value.length}/24`;validNickname()});roomInput.addEventListener('input',()=>{roomInput.value=formatCode(roomInput.value);enterButton.disabled=!roomPattern.test(roomInput.value)});
+
+document.querySelector('#join-form').addEventListener('submit',event=>{event.preventDefault();if(!validNickname())return;const code=Array.from({length:8},()=>Math.floor(Math.random()*36).toString(36)).join('').toUpperCase().replace(/(.{4})/,'$1-');showToast('Sala criada!');setTimeout(()=>goToRoom(code),250)});enterButton.addEventListener('click',()=>{if(!validNickname())return;if(!roomPattern.test(roomInput.value)){document.querySelector('#code-error').textContent='Use o formato XXXX-XXXX.';return}goToRoom(roomInput.value)});
+nicknameInput.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();document.querySelector('#create-room').click()}});roomInput.addEventListener('keydown',event=>{if(event.key==='Enter'&&!enterButton.disabled)enterButton.click()});

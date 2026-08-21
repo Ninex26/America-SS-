@@ -3,37 +3,121 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>America | Sala</title>
+<title>DuArrasta | Sala</title>
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="room.css">
 </head>
 <body class="room-page">
+<div class="bg-orbs" aria-hidden="true"><i class="orb orb-1"></i><i class="orb orb-2"></i><i class="orb orb-3"></i><i class="orb orb-4"></i></div>
+<div class="grid-overlay" aria-hidden="true"></div>
+<div class="particles" aria-hidden="true"><i class="pt pt-1"></i><i class="pt pt-2"></i><i class="pt pt-3"></i><i class="pt pt-4"></i><i class="pt pt-5"></i><i class="pt pt-6"></i><i class="pt pt-7"></i><i class="pt pt-8"></i><i class="pt pt-9"></i><i class="pt pt-10"></i></div>
+<div class="aurora aurora-1" aria-hidden="true"></div>
+<div class="aurora aurora-2" aria-hidden="true"></div>
+
 <header class="room-topbar">
-  <a class="brand" href="index.html" aria-label="America início">
-    <span class="logo-mark"><img src="https://cdn.discordapp.com/attachments/1534787259558006816/1539476577493061713/image-removebg-preview_4.png?ex=6a8674ca&amp;is=6a85234a&amp;hm=cb086ed167e08139d49e393a114b2b7d75746e3a0bd6f93332288ecfde1d0b8e&amp;" alt="Logo America" onerror="this.style.display='none'"><span>LOGO</span></span>
-    <strong>America</strong>
+<a class="brand" href="index.html" aria-label="DuArrasta início">
+    <span class="logo-mark"><img src="https://cdn.discordapp.com/attachments/1524548205466095677/1540207479126884382/image-removebg-preview_4.png?ex=6a891d7e&is=6a87cbfe&hm=9162c905b05707b28663a7ee3a07287d6c4807c83e8463b1e77dfbaee2398748&" alt="Logo DuArrasta" onerror="this.style.display='none'"><span>D</span></span>
+    <strong>DuArrasta<span class="brand-dot">.</span></strong>
   </a>
-  <button class="room-code-pill" id="copy-code"><svg viewBox="0 0 24 24"><path d="M8 8h11v11H8zM5 16H4V5h11v1"/></svg><span id="room-code-label">----</span></button>
-  <div class="connection"><span class="people-count"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c.5-3 2.5-5 6-5s5.5 2 6 5M15 15c3 0 5 1.5 6 4"/></svg><b id="user-count">1</b></span><span class="connection-state connecting" id="connection-state"><i></i> Conectando...</span><button class="chat-toggle" id="chat-toggle" type="button" aria-label="Abrir chat" aria-expanded="false" title="Abrir chat"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 4V5Z"/><path d="M8 9h8M8 13h5"/></svg></button></div>
+
+  <div class="room-status">
+    <span class="room-status-label"><i class="live-dot"></i> SALA</span>
+    <button class="room-code-pill" id="copy-code" title="Copiar código"><svg viewBox="0 0 24 24"><path d="M8 8h11v11H8zM5 16H4V5h11v1"/></svg><span id="room-code-label">----</span></button>
+  </div>
+
+  <div class="connection">
+    <span class="people-count" title="Participantes"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c.5-3 2.5-5 6-5s5.5 2 6 5M15 15c3 0 5 1.5 6 4"/></svg><b id="user-count">1</b></span>
+    <span class="connection-state connecting" id="connection-state"><i></i> Conectando...</span>
+    <button class="chat-toggle" id="chat-toggle" type="button" aria-label="Abrir chat" aria-expanded="false" title="Abrir chat"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 4V5Z"/><path d="M8 9h8M8 13h5"/></svg><span class="chat-badge" id="chat-badge" hidden>0</span></button>
+  </div>
+
   <button class="menu-button" id="menu-toggle" aria-label="Abrir menu"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
 </header>
+
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-content">
-    <div class="room-info"><span>CÓDIGO DA SALA</span><strong id="sidebar-code">----</strong><button id="copy-link"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 7 20l1.1-1.1"/></svg>Copiar link do convite</button></div>
+    <div class="room-info-card">
+      <div class="room-info-top">
+        <span class="room-info-label"><i></i> CÓDIGO DA SALA</span>
+        <span class="room-live-pill"><i></i> AO VIVO</span>
+      </div>
+      <strong id="sidebar-code">----</strong>
+      <div class="room-info-actions">
+        <button id="copy-link"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 7 20l1.1-1.1"/></svg> Copiar link</button>
+      </div>
+    </div>
     <div class="member-count-placeholder" id="member-count" hidden>1</div>
-    <div class="members" id="members"></div>
+    <div class="members-section">
+      <div class="members" id="members"></div>
+    </div>
   </div>
-  <div class="sidebar-footer">Você entrou como <strong id="footer-name">visitante</strong></div>
+  <div class="sidebar-footer">
+    <div class="footer-avatar avatar" id="footer-avatar">?</div>
+    <div class="footer-info"><small>VOCÊ ENTROU COMO</small><strong id="footer-name">visitante</strong></div>
+  </div>
 </aside>
-<aside class="chat-panel" id="chat-panel" aria-label="Chat da sala" aria-hidden="true"><div class="chat-header"><div><strong>Chat da sala</strong><small id="chat-status">Mensagens em tempo real</small></div><button id="chat-close" type="button" aria-label="Fechar chat" title="Fechar chat"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><div class="chat-messages" id="chat-messages" aria-live="polite"><p class="chat-empty" id="chat-empty">Nenhuma mensagem ainda.</p></div><form class="chat-form" id="chat-form"><input id="chat-input" maxlength="500" autocomplete="off" placeholder="Escreva uma mensagem..." aria-label="Mensagem"><button type="submit" aria-label="Enviar mensagem" title="Enviar mensagem"><svg viewBox="0 0 24 24"><path d="m4 4 16 8-16 8 3-8-3-8ZM7 12h13"/></svg></button></form></aside>
+
+<aside class="chat-panel" id="chat-panel" aria-label="Chat da sala" aria-hidden="true">
+  <div class="chat-header">
+    <div class="chat-heading"><div class="chat-icon"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 4V5Z"/><path d="M8 9h8M8 13h5"/></svg></div><div><strong>Chat da sala</strong><small id="chat-status">Mensagens em tempo real</small></div></div>
+    <button id="chat-close" type="button" aria-label="Fechar chat" title="Fechar chat"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="chat-messages" id="chat-messages" aria-live="polite">
+    <p class="chat-empty" id="chat-empty">Nenhuma mensagem ainda.<br><small>Comece a conversa!</small></p>
+  </div>
+  <form class="chat-form" id="chat-form">
+    <input id="chat-input" maxlength="500" autocomplete="off" placeholder="Escreva uma mensagem..." aria-label="Mensagem">
+    <button type="submit" aria-label="Enviar mensagem" title="Enviar mensagem"><svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+  </form>
+</aside>
+
 <main class="stage">
-  <div class="loading-state" id="loading-state"><span class="loader"></span>Conectando à sala...</div>
-  <section class="empty-state" id="empty-state"><div class="monitor-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div><h1>Ninguém está compartilhando ainda</h1><p>Chame alguém com o link da sala ou comece<br> transmitindo a sua tela.</p><div class="empty-actions"><button class="primary-button" id="share-screen">Compartilhar tela</button><button class="secondary-button" id="empty-copy-link">Copiar link</button></div></section>
-  <section class="video-stage" id="video-stage"><video id="remote-video" autoplay playsinline></video><div class="video-label">Tela compartilhada</div><div class="video-placeholder">Aguardando transmissão...</div></section>
-  <div class="floating-controls"><button id="control-share" title="Compartilhar tela"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span>Compartilhar tela</span></button><button id="control-stop" title="Parar compartilhamento" disabled><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg><span>Parar</span></button><button id="control-fullscreen" title="Tela cheia"><svg viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5"/></svg><span>Tela cheia</span></button><button id="control-copy" title="Copiar link"><svg viewBox="0 0 24 24"><path d="M8 8h11v11H8zM5 16H4V5h11v1"/></svg><span>Copiar link</span></button><button id="control-leave" title="Sair"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M21 4v16"/></svg><span>Sair</span></button></div>
+  <div class="loading-state" id="loading-state">
+    <div class="loader-ring"><span class="loader"></span></div>
+    <div><strong>Conectando à sala...</strong><small>Estabelecendo conexão segura</small></div>
+  </div>
+
+  <section class="empty-state" id="empty-state">
+    <div class="empty-visual">
+      <div class="monitor-frame">
+        <div class="monitor-screen"><span class="scr-line"></span><span class="scr-line short"></span><span class="scr-dot"></span></div>
+        <div class="monitor-stand"></div>
+      </div>
+      <div class="float-chip chip-1"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+      <div class="float-chip chip-2"><svg viewBox="0 0 24 24"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg></div>
+    </div>
+    <h1>Ninguém está compartilhando ainda</h1>
+    <p>Chame alguém com o link da sala ou comece transmitindo a sua tela.</p>
+    <div class="empty-actions">
+      <button class="primary-button shine-btn" id="share-screen"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg> Compartilhar tela</button>
+      <button class="secondary-button" id="empty-copy-link"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 7 20l1.1-1.1"/></svg> Copiar link</button>
+    </div>
+  </section>
+
+  <section class="video-stage" id="video-stage">
+    <video id="remote-video" autoplay playsinline></video>
+    <div class="video-label" id="video-label">Tela compartilhada</div>
+    <div class="video-placeholder">Aguardando transmissão...</div>
+  </section>
+
+  <div class="floating-controls">
+    <button id="control-share" title="Compartilhar tela"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span>Compartilhar tela</span></button>
+    <button id="control-stop" title="Parar compartilhamento" disabled><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg><span>Parar</span></button>
+    <span class="ctrl-divider"></span>
+    <button id="control-fullscreen" title="Tela cheia"><svg viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5"/></svg><span>Tela cheia</span></button>
+    <button id="control-copy" title="Copiar link"><svg viewBox="0 0 24 24"><path d="M8 8h11v11H8zM5 16H4V5h11v1"/></svg><span>Copiar link</span></button>
+    <span class="ctrl-divider"></span>
+    <button id="control-leave" class="danger-btn" title="Sair"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M21 4v16"/></svg><span>Sair</span></button>
+  </div>
 </main>
-<div class="not-found" id="not-found" hidden><div class="not-found-icon">!</div><h1>Sala não encontrada</h1><p>A sala que você tentou acessar não existe ou expirou.</p><a class="secondary-button" href="index.html">Voltar</a></div>
+
+<div class="not-found" id="not-found" hidden>
+  <div class="not-found-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg></div>
+  <h1>Sala não encontrada</h1>
+  <p>A sala que você tentou acessar não existe ou expirou.</p>
+  <a class="secondary-button" href="index.html">Voltar ao início</a>
+</div>
+
 <div id="toast-region" class="toast-region" aria-live="polite"></div>
 <script src="room.js"></script>
-</body>
-</html>
+</body></html>

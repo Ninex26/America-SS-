@@ -1,17 +1,140 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="America - Desativado"><title>America | Desativado</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="DuArrasta, compartilhamento de tela direto no navegador.">
+<title>DuArrasta | Compartilhamento de tela</title>
 <link rel="stylesheet" href="style.css">
 </head>
-<body class="landing-page disabled-page">
-<header class="topbar"><a class="brand" href="index.html" aria-label="America início"><span class="logo-mark"><img src="https://cdn.discordapp.com/attachments/1534787259558006816/1539476577493061713/image-removebg-preview_4.png?ex=6a8674ca&amp;is=6a85234a&amp;hm=cb086ed167e08139d49e393a114b2b7d75746e3a0bd6f93332288ecfde1d0b8e&amp;" alt="Logo America" onerror="this.style.display='none'"><span>LOGO</span></span><strong>America</strong></a><span class="topbar-note">SIMPLES. DIRETO. PRIVADO.</span></header>
-<main class="landing-shell disabled-shell">
-  <div class="disabled-banner">
-    <div class="disabled-icon">!</div>
-    <h1>Site Desativado</h1>
-    <p>Este serviço está indisponível.</p>
-  </div>
+<body class="landing-page">
+<div class="bg-orbs" aria-hidden="true"><i class="orb orb-1"></i><i class="orb orb-2"></i><i class="orb orb-3"></i><i class="orb orb-4"></i></div>
+<div class="grid-overlay" aria-hidden="true"></div>
+
+<header class="topbar">
+<a class="brand" href="index.html" aria-label="DuArrasta início"><span class="logo-mark"><img src="https://cdn.discordapp.com/attachments/1524548205466095677/1540207479126884382/image-removebg-preview_4.png?ex=6a891d7e&is=6a87cbfe&hm=9162c905b05707b28663a7ee3a07287d6c4807c83e8463b1e77dfbaee2398748&" alt="Logo DuArrasta" onerror="this.style.display='none'"></span><strong>DuArrasta<span class="brand-dot">.</span></strong></a>
+  <nav class="main-nav"><a href="#recursos" class="nav-link">Recursos</a><a href="#como-funciona" class="nav-link">Como funciona</a><a href="#entrar" class="nav-link">Entrar</a></nav>
+  <div class="topbar-actions"><button class="ghost-btn" id="nav-enter">Entrar na sala <span>→</span></button><span class="live-badge"><i></i> ONLINE</span></div>
+</header>
+
+<main class="landing-shell">
+  <!-- HERO: texto à esquerda com stats + pontos -->
+  <section class="hero-left">
+    <div class="hero-badge"><span class="status-dot"></span> Reconhecimento em tempo real <b>beta</b></div>
+    <h1 class="hero-title"><span class="title-line">Compartilhe sua</span> <span class="title-line gradient-text">tela ao vivo</span> <span class="title-line">em segundos.</span></h1>
+    <p class="hero-desc">Crie uma sala, mande o código e pronto — sua tela transmitida direto pelo navegador, sem instalação e sem cadastro.</p>
+    <div class="hero-stats">
+      <div class="stat"><b>0s</b><small>de setup</small></div>
+      <div class="stat"><b>∞</b><small>participantes</small></div>
+      <div class="stat"><b>100%</b><small>privacidade</small></div>
+    </div>
+    <div class="hero-cta"><button class="primary-button" id="hero-create"><span>+</span> Criar sala agora</button><button class="text-link" id="hero-find">Tenho um código <span>→</span></button></div>
+    <div class="hero-trust"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span>Sem dados pessoais • Sem instalação • Sem cadastro</span></div>
+  </section>
+
+  <!-- PAINEL LATERAL direito: botões rápidos + formulário -->
+  <section class="join-panel" id="entrar">
+    <div class="join-tabs">
+      <button class="tab-btn active" id="tab-create" type="button">Criar sala</button>
+      <button class="tab-btn" id="tab-enter" type="button">Entrar com código</button>
+    </div>
+
+    <!-- Tab Criar -->
+    <form id="join-form" class="tab-content active" novalidate>
+      <div class="tab-head"><h2>Começar agora</h2><small>Escolha seu nickname e entre</small></div>
+      <label for="nickname">SEU NICKNAME</label>
+      <div class="name-field"><div id="avatar-preview" class="avatar avatar-large">?</div><input id="nickname" maxlength="24" autocomplete="nickname" placeholder="Ex: Colaborador01" required><span id="nick-count">0/24</span></div>
+      <p class="field-error" id="nick-error" role="alert"></p>
+      <button class="primary-button btn-block" id="create-room" type="submit"><span class="btn-icon"><svg viewBox="0 0 24 24"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg></span> Criar nova sala</button>
+    </form>
+
+    <!-- Tab Entrar -->
+    <form id="enter-form" class="tab-content" novalidate>
+      <div class="tab-head"><h2>Entrar na sala</h2><small>Digite o código recebido</small></div>
+      <label for="room-code">CÓDIGO DA SALA</label>
+      <div class="code-wrap"><div class="code-lock"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div><input class="code-input" id="room-code" inputmode="text" maxlength="9" placeholder="XXXX-XXXX" autocomplete="off"></div>
+      <p class="field-error" id="code-error" role="alert"></p>
+      <button class="secondary-button btn-block" id="enter-room" type="button" disabled>Entrar na sala <span>→</span></button>
+    </form>
+
+    <div class="join-footer"><span class="join-dot"></span> <span id="online-note">Servidor online · salas ativas agora</span></div>
+  </section>
 </main>
+
+<!-- SEÇÃO RECURSOS -->
+<section class="features-section" id="recursos">
+  <div class="section-head"><span class="section-kicker">RECURSOS</span><h2>Feito para ser <em>rápido</em> e <em>simples</em></h2><p>Tudo o que você precisa para compartilhar sua tela em um só lugar.</p></div>
+  <div class="features-grid">
+    <article class="feature-card"><span class="feature-num">01</span><i class="feature-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></i><h3>Sala instantânea</h3><p>Crie uma sala em um clique e compartilhe o link ou código.</p></article>
+    <article class="feature-card"><span class="feature-num">02</span><i class="feature-icon"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="m9 12 2 2 4-5"/></svg></i><h3>Screen share direto</h3><p>Transmita sua tela em alta qualidade, direto pelo navegador.</p></article>
+    <article class="feature-card"><span class="feature-num">03</span><i class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c.5-3 2.5-5 6-5s5.5 2 6 5M15 15c3 0 5 1.5 6 4"/></svg></i><h3>Múltiplos usuários</h3><p>Várias pessoas podem participar e assistir ao mesmo tempo.</p></article>
+    <article class="feature-card"><span class="feature-num">04</span><i class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></i><h3>Zero espera</h3><p>Sem filas, sem carregamento. O compartilhamento começa na hora.</p></article>
+  </div>
+</section>
+
+<!-- SEÇÃO COMO FUNCIONA -->
+<section class="how-section" id="como-funciona">
+  <div class="section-head light"><span class="section-kicker">COMO FUNCIONA</span><h2>3 passos para <em>começar</em></h2></div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><h3>Crie a sala</h3><p>Clique em criar e escolha seu nickname. Pronto, sua sala já existe.</p></div>
+    <div class="step"><div class="step-num">2</div><h3>Compartilhe o código</h3><p>Envie o código ou link para quem quiser assistir.</p></div>
+    <div class="step"><div class="step-num">3</div><h3>Transmita a tela</h3><p>Pressione compartilhar e todos verão sua tela ao vivo.</p></div>
+  </div>
+</section>
+
+<!-- RODAPÉ -->
+<footer class="footer">
+  <div class="footer-inner"><span class="footer-brand">DuArrasta</span><p>Compartilhamento direto no navegador.</p><div class="footer-links"><a href="#recursos">Recursos</a><a href="#como-funciona">Como funciona</a></div></div>
+  <span class="footer-copy">© 2026 DuArrasta — Feito com <b class="heart"><svg viewBox="0 0 24 24"><path d="M12 21C7 16.5 2 13 2 8.5 2 5.5 4.5 3 7.5 3c1.8 0 3.4.9 4.5 2.3C13.1 3.9 14.7 3 16.5 3 19.5 3 22 5.5 22 8.5c0 4.5-5 8-10 12.5Z"/></svg></b></span>
+</footer>
+
+<div id="toast-region" class="toast-region" aria-live="polite"></div>
+<script>
+// ===== Animações de scroll (reveal) =====
+(function(){
+  var revealEls=document.querySelectorAll('.feature-card,.step,.section-head,.hero-left,.join-panel');
+  revealEls.forEach(function(el){el.classList.add('reveal-hidden')});
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('revealed');
+          io.unobserve(entry.target);
+        }
+      });
+    },{threshold:.15});
+    revealEls.forEach(function(el){io.observe(el)});
+  } else {
+    revealEls.forEach(function(el){el.classList.add('revealed')});
+  }
+})();
+// ===== Navegação + tabs =====
+(function(){
+  var navEnter=document.getElementById('nav-enter');
+  if(navEnter){navEnter.addEventListener('click',function(){var t=document.getElementById('entrar');if(t){t.scrollIntoView({behavior:'smooth',block:'center'})}})}
+  var heroFind=document.getElementById('hero-find');
+  if(heroFind){heroFind.addEventListener('click',function(){var t=document.getElementById('entrar');if(t){t.scrollIntoView({behavior:'smooth',block:'center'})}})}
+  var heroCreate=document.getElementById('hero-create');
+  if(heroCreate){heroCreate.addEventListener('click',function(){
+    var t=document.getElementById('entrar');if(t){t.scrollIntoView({behavior:'smooth',block:'center'})}
+    var tc=document.getElementById('tab-create');if(tc){activateTab(tc)}
+  })}
+  function activateTab(btn){
+    var createBtn=document.getElementById('tab-create'),enterBtn=document.getElementById('tab-enter');
+    createBtn.classList.remove('active');enterBtn.classList.remove('active');
+    btn.classList.add('active');
+    var isCreate=btn===createBtn;
+    document.getElementById('join-form').classList.toggle('active',isCreate);
+    document.getElementById('enter-form').classList.toggle('active',!isCreate);
+  }
+  document.getElementById('tab-create').addEventListener('click',function(){activateTab(this)});
+  document.getElementById('tab-enter').addEventListener('click',function(){activateTab(this)});
+  // Previne submit nativo do form (que recarregaria a página e perderia o código)
+  var enterForm=document.getElementById('enter-form');
+  if(enterForm){enterForm.addEventListener('submit',function(e){e.preventDefault()})}
+  var joinForm=document.getElementById('join-form');
+  if(joinForm){joinForm.addEventListener('submit',function(e){e.preventDefault()})}
+})();
+</script>
 <script src="script.js"></script>
 </body></html>
